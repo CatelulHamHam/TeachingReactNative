@@ -1,7 +1,12 @@
 **React Native Simple App Cheat Sheet Lesson 1**
 
 ---
-
+### 0. Creating the project 
+- **Run** in terminal the following command:
+  ```bash
+  npx create-expo-app@latest --template blank
+  ```
+  
 ### 1. Project Overview
 - **Purpose:** Create a simple app to demonstrate basic React Native functionality for beginners.
 - **Features:**
