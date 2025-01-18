@@ -1,4 +1,4 @@
-**React Native Lesson 2: Building a Table with Input for Beginners**
+no**React Native Lesson 2: Building a Table with Input for Beginners**
 
 ---
 
@@ -410,14 +410,14 @@ import { FlatList, Button, StyleSheet, Text, TextInput, View } from 'react-nativ
 import { StatusBar } from 'expo-status-bar';
 import Constants from 'expo-constants';
 import * as FileSystem from 'expo-file-system';
-import * as DocumentPicker from 'expo-document-picker';
 import * as MediaLibrary from 'expo-media-library';
 
 export default function App() {
   const [tableData, setTableData] = useState([]);
   const [inputValue, setInputValue] = useState('');
 
-  const saveToAccessibleLocation = async (data) => {
+  const saveToDownloads = async (data) => {
+    // Request permissions to access the media library
     const { status } = await MediaLibrary.requestPermissionsAsync();
     if (status !== 'granted') {
       console.error('Permission to access media library was denied.');
@@ -428,14 +428,20 @@ export default function App() {
     const fileUri = `${FileSystem.documentDirectory}${fileName}`;
 
     try {
-      // Write data to a temporary file
+      // Save data to a temporary file in the app's document directory
       await FileSystem.writeAsStringAsync(fileUri, data);
 
-      // Move the file to the Downloads folder or a chosen location
+      // Move the file to the Downloads folder
       const asset = await MediaLibrary.createAssetAsync(fileUri);
-      await MediaLibrary.createAlbumAsync('Download', asset, false);
+      const album = await MediaLibrary.getAlbumAsync('Download');
 
-      console.log('File saved successfully to Downloads folder.');
+      if (album == null) {
+        await MediaLibrary.createAlbumAsync('Download', asset, false);
+      } else {
+        await MediaLibrary.addAssetsToAlbumAsync([asset], album, false);
+      }
+
+      console.log('File saved successfully to the Downloads folder.');
     } catch (err) {
       console.error('Error saving file:', err);
     }
@@ -443,7 +449,7 @@ export default function App() {
 
   const exportTableData = () => {
     const data = tableData.map(row => `${row.key}: ${row.value}`).join('\n');
-    saveToAccessibleLocation(data);
+    saveToDownloads(data);
   };
 
   return (
@@ -473,7 +479,7 @@ export default function App() {
         )}
         keyExtractor={(item, index) => index.toString()}
       />
-      <Button title="Export Data (Accessible)" onPress={exportTableData} />
+      <Button title="Export Data to Downloads" onPress={exportTableData} />
     </View>
   );
 }
