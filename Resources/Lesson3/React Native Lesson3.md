@@ -145,83 +145,100 @@ const clearFile = async () => {
 import React, { useState } from 'react';
 import { FlatList, Button, StyleSheet, Text, TextInput, View, Alert } from 'react-native';
 import * as FileSystem from 'expo-file-system';
+import {StatusBar} from 'expo-status-bar';
+import { SafeAreaView } from 'react-native';
+
 
 export default function App() {
-  const [tableData, setTableData] = useState([]);
-  const [inputValue, setInputValue] = useState('');
+  const [fileData, setFileData] = useState([]);
+  const [fileInputValue, setFileInputValue] = useState('');
 
-  const saveToFile = async () => {
-    const fileUri = `${FileSystem.documentDirectory}tableData.txt`;
-    const data = tableData.map((row) => `${row.key}: ${row.value}`).join('\n');
+  // Expo FileSystem Functions
+  const saveToFileExpo = async () => {
+    const fileUri = `${FileSystem.documentDirectory}fileData.txt`;
+    const data = fileData.map((row) => `${row.key}: ${row.value}`).join('\n');
     try {
       await FileSystem.writeAsStringAsync(fileUri, data);
-      Alert.alert('Saved!', `File saved to: ${fileUri}`);
+      Alert.alert('File Saved!', `Your data has been saved to a file at:\n${fileUri}`);
     } catch (error) {
-      Alert.alert('Error', 'Could not save file.');
+      Alert.alert('Error', 'Could not save data to a file.');
     }
   };
 
-  const loadFromFile = async () => {
-    const fileUri = `${FileSystem.documentDirectory}tableData.txt`;
+  const loadFileData = async () => {
+    const fileUri = `${FileSystem.documentDirectory}fileData.txt`;
     try {
-      const fileContent = await FileSystem.readAsStringAsync(fileUri);
-      const rows = fileContent
-        .split('\n')
-        .filter((line) => line.trim() !== '')
-        .map((line, index) => {
-          const [key, value] = line.split(': ');
-          return { key: `Row ${index + 1}`, value };
-        });
-      setTableData(rows);
+      const fileDataContent = await FileSystem.readAsStringAsync(fileUri);
+      const parsedData = fileDataContent
+              .split('\n')
+              .filter((line) => line.trim() !== '')
+              .map((line, index) => {
+                const [key, value] = line.split(': ');
+                return { key: `Row ${index + 1}`, value: value || '' };
+              });
+      setFileData(parsedData);
     } catch (error) {
-      console.log('No file to load.');
+      console.log('No file to load yet.'); // Removed the alert for initial load
     }
   };
 
-  const clearGUI = () => {
-    setTableData([]);
-    Alert.alert('Cleared!', 'The GUI has been cleared.');
+  const clearFileData = async () => {
+    const fileUri = `${FileSystem.documentDirectory}fileData.txt`;
+    try {
+      await FileSystem.deleteAsync(fileUri);
+      setFileData([]);
+      Alert.alert('Cleared!', 'All data has been removed from the file.');
+    } catch (error) {
+      Alert.alert('Error', 'Could not clear data from the file.');
+    }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Dynamic Table with File Saving</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter a value"
-        onChangeText={(text) => setInputValue(text)}
-        value={inputValue}
-      />
-      <Button
-        title="Add Row"
-        onPress={() => {
-          setTableData([...tableData, { key: `Row ${tableData.length + 1}`, value: inputValue }]);
-          setInputValue('');
-        }}
-      />
-      <FlatList
-        data={tableData}
-        renderItem={({ item }) => (
-          <View style={styles.row}>
-            <Text>{item.key}</Text>
-            <Text>{item.value}</Text>
-          </View>
-        )}
-        keyExtractor={(item, index) => index.toString()}
-      />
-      <Button title="Save Data to File" onPress={saveToFile} />
-      <Button title="Load Data from File" onPress={loadFromFile} />
-      <Button title="Clear GUI" onPress={clearGUI} />
-    </View>
+
+          <SafeAreaView style={styles.container}>
+            <View style={styles.container}>
+              <StatusBar style="auto" />
+              <Text style={styles.title}>Expo FileSystem</Text>
+              <TextInput
+                      style={styles.input}
+                      placeholder="Enter a value"
+                      onChangeText={(text) => setFileInputValue(text)}
+                      value={fileInputValue}
+              />
+              <Button
+                      style={styles.buttonSpacing}
+                      title="Add Row"
+                      onPress={() => {
+                        setFileData([...fileData, { key: `Row ${fileData.length + 1}`, value: fileInputValue }]);
+                        setFileInputValue('');
+                      }}
+              />
+              <FlatList
+                      style={styles.list}
+                      data={fileData}
+                      renderItem={({ item }) => (
+                              <View style={styles.row}>
+                                <Text>{item.key}</Text>
+                                <Text>{item.value}</Text>
+                              </View>
+                      )}
+                      keyExtractor={(item, index) => index.toString()}
+              />
+              <View style={styles.buttonSpacing}>
+                <Button title="Save Data to File" onPress={saveToFileExpo} />
+              </View>
+              <View style={styles.buttonSpacing}>
+                <Button title="Load Data from File" onPress={loadFileData} />
+              </View>
+              <View style={styles.buttonSpacing}>
+                <Button title="Clear Data in File" onPress={clearFileData} />
+              </View>
+            </View>
+          </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: '#f0f0f0',
-  },
   title: {
     fontSize: 24,
     marginBottom: 20,
@@ -241,6 +258,17 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
   },
+  list: {
+    maxHeight: 200,
+  },
+  buttonSpacing: {
+    marginVertical: 10,
+  },
+  container :{
+    flex: 1,
+    marginTop: 20,
+    marginHorizontal: 5,
+  }
 });
 ```
 
@@ -252,4 +280,8 @@ const styles = StyleSheet.create({
 3. **State management** with `useState` is crucial for handling dynamic data.
 4. **File operations** add persistence, allowing data to persist across sessions.
 
+
+```npm
+npx expo install react-native-safe-area-context
+```
 ---
