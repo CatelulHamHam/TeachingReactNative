@@ -1,4 +1,4 @@
-**React Native Lesson 2: Building a Table with Input for Beginners**
+no**React Native Lesson 2: Building a Table with Input for Beginners**
 
 ---
 
@@ -404,5 +404,115 @@ const styles = StyleSheet.create({
 5. **Views:** Central to organizing layouts, enabling nested components and custom styling.
 6. **File Operations:** Save app data to files using `expo-file-system` and `react-native-fs` for persistence or sharing.
 
-Would you like additional examples or exercises to solidify these concepts?
+```javascript
+import React, { useState } from 'react';
+import { FlatList, Button, StyleSheet, Text, TextInput, View } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import Constants from 'expo-constants';
+import * as FileSystem from 'expo-file-system';
+import * as MediaLibrary from 'expo-media-library';
 
+export default function App() {
+  const [tableData, setTableData] = useState([]);
+  const [inputValue, setInputValue] = useState('');
+
+  const saveToDownloads = async (data) => {
+    // Request permissions to access the media library
+    const { status } = await MediaLibrary.requestPermissionsAsync();
+    if (status !== 'granted') {
+      console.error('Permission to access media library was denied.');
+      return;
+    }
+
+    const fileName = 'tableData.txt';
+    const fileUri = `${FileSystem.documentDirectory}${fileName}`;
+
+    try {
+      // Save data to a temporary file in the app's document directory
+      await FileSystem.writeAsStringAsync(fileUri, data);
+
+      // Move the file to the Downloads folder
+      const asset = await MediaLibrary.createAssetAsync(fileUri);
+      const album = await MediaLibrary.getAlbumAsync('Download');
+
+      if (album == null) {
+        await MediaLibrary.createAlbumAsync('Download', asset, false);
+      } else {
+        await MediaLibrary.addAssetsToAlbumAsync([asset], album, false);
+      }
+
+      console.log('File saved successfully to the Downloads folder.');
+    } catch (err) {
+      console.error('Error saving file:', err);
+    }
+  };
+
+  const exportTableData = () => {
+    const data = tableData.map(row => `${row.key}: ${row.value}`).join('\n');
+    saveToDownloads(data);
+  };
+
+  return (
+    <View style={styles.container}>
+      <StatusBar style="dark" />
+      <Text style={styles.title}>Dynamic Table Example</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Enter a value"
+        onChangeText={(text) => setInputValue(text)}
+        value={inputValue}
+      />
+      <Button
+        title="Add Row"
+        onPress={() => {
+          setTableData([...tableData, { key: `Row ${tableData.length + 1}`, value: inputValue }]);
+          setInputValue('');
+        }}
+      />
+      <FlatList
+        data={tableData}
+        renderItem={({ item }) => (
+          <View style={styles.row}>
+            <Text style={styles.cell}>{item.key}</Text>
+            <Text style={styles.cell}>{item.value}</Text>
+          </View>
+        )}
+        keyExtractor={(item, index) => index.toString()}
+      />
+      <Button title="Export Data to Downloads" onPress={exportTableData} />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingTop: Constants.statusBarHeight,
+    padding: 20,
+    backgroundColor: '#f0f0f0',
+  },
+  title: {
+    fontSize: 24,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    padding: 10,
+    marginBottom: 10,
+    borderRadius: 5,
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ddd',
+  },
+  cell: {
+    flex: 1,
+    textAlign: 'center',
+  },
+});
+```
