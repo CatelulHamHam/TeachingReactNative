@@ -1,5 +1,7 @@
 npx expo install expo-camera
 
+npm install react-native-qrcode-sv
+
 
 
 ## Config 
