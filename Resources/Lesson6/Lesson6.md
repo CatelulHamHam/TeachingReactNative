@@ -181,3 +181,35 @@ module.exports = function(api) {
     };
 };
 ```
+
+
+```json
+{
+  "name": "weatherapp",
+  "license": "0BSD",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+    "axios": "^1.8.1",
+    "dotenv": "^16.4.7",
+    "expo": "~52.0.37",
+    "expo-location": "^18.0.7",
+    "expo-status-bar": "~2.0.1",
+    "react": "18.3.1",
+    "react-native": "0.76.7",
+    "react-native-dotenv": "^3.4.11",
+    "react-native-elements": "^3.4.3",
+    "react-native-vector-icons": "^10.2.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.20.0"
+  },
+  "private": true
+} 
+```
